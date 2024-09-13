@@ -15,7 +15,6 @@ class RickAndMortyClient:
         CHARACTER_PATH = 'character'
         LOCATION_PATH = 'location'
         EPISODE_PATH = 'episode'
-        PAGE_QUERY = '?page={page}'
         
         @property
         def character_path(self):
@@ -35,7 +34,7 @@ class RickAndMortyClient:
             return f"{path}?{query_string}"    
 
     INITIAL_PAGE_INDEX = 1
-    
+
     def __init__(self):
         self.client = httpx.AsyncClient()
         self.urlbuilder = self.RickAndMortyURLBuilder()
