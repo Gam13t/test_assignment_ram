@@ -30,12 +30,9 @@ class RickAndMortyClient:
             return f"{self.BASE_URL}{self.EPISODE_PATH}"
 
         def add_query_params(self, path: str, params: dict) -> str:
-            """Add query parameters to the URL."""
+            """Add query parameters to the URL"""
             query_string = urlencode(params)
-            if '?' in path:
-                return f"{path}&{query_string}"
-            else:
-                return f"{path}?{query_string}"    
+            return f"{path}?{query_string}"    
 
     INITIAL_PAGE_INDEX = 1
     def __init__(self):
@@ -70,7 +67,6 @@ class RickAndMortyClient:
         for page_data in data:
             all_results.extend(page_data['results'])
 
-        print(len(all_results))
         return all_results
 
     async def fetch_all_characters(self):
@@ -84,9 +80,3 @@ class RickAndMortyClient:
 
     async def close(self):
         await self.client.aclose()
-
-
-# Example usage
-if __name__ == '__main__':
-    client = RickAndMortyClient()  # Make client instance
-    asyncio.run(client.fetch_all_characters())  # Fetch all characters
