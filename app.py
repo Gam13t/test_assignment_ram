@@ -61,7 +61,7 @@ class RickAndMortyApp():
     
     # We may either make a call to API or assume that we should print episodes in range as a part of the flow.
     # In this case - I'll make a check if we get the episodes list already and if we have it - I won't be making a
-    # request to obatin them again.
+    # request to obatin them again. However since our code is async, most of the time self.episodes will be empty at first.
     async def print_episodes_in_range(self):
         if not self.episodes:
             self.episodes = await self.client.fetch_all_episodes()

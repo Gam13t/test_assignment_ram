@@ -26,12 +26,7 @@ class RickAndMortyClient:
 
         @property
         def episode_path(self):
-            return f"{self.BASE_URL}{self.EPISODE_PATH}"
-
-        def add_query_params(self, path: str, params: dict) -> str:
-            """Add query parameters to the URL"""
-            query_string = urlencode(params)
-            return f"{path}?{query_string}"    
+            return f"{self.BASE_URL}{self.EPISODE_PATH}"  
 
     INITIAL_PAGE_INDEX = 1
 
@@ -43,8 +38,9 @@ class RickAndMortyClient:
         """
         Fetch a single page from a given endpoint.
         """
-        url = self.urlbuilder.add_query_params(path, {'page': page})
-        response = await self.client.get(url)
+        # Pass page as query parameter
+        params = {'page': page}
+        response = await self.client.get(path, params=params)
         response.raise_for_status()
         return response.json()
 
@@ -52,8 +48,13 @@ class RickAndMortyClient:
     async def fetch_all_pages(self, path: str):
         """
         Method for asynchronously harvesting all the info from multiple pages for the sources PATH.
+        
+        !Despite we receive the link to the next page with data, I suppose to implement this throught receiving initial_page_data first,
+        and bulk process everything afterwards, because otherwise we will be processing pages one by one waiting for the 
+        previous page to complete processing before switching to the next one, that, I believe, would drastically decrease the perfomance!
         """
-        initial_page_data = await self.fetch_page(path, self.INITIAL_PAGE_INDEX)  # Get info from first page to have info on how many pages do we have
+        # Get info from first page to have info on how many pages do we have
+        initial_page_data = await self.fetch_page(path, self.INITIAL_PAGE_INDEX)  
         total_pages = initial_page_data['info']['pages']
 
         # Fetch all the pages concurrently
