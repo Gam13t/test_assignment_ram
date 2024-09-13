@@ -1,25 +1,29 @@
-import os
 import json
 import asyncio 
-import aiofiles  # needed since IO blocks async opperations
+import aiofiles
 from uuid import uuid4
 
 from datetime import datetime
 from client import RickAndMortyClient
 
 class RickAndMortyApp():
-
+    """
+    App class to collect and serialize data we retrieve from the client
+    """
     CHARACTERS_FILE = 'characters.json'
     LOCAITONS_FILE = 'locations.json'
     EPISODES_FILE = 'episodes.json'
 
     def __init__(self):
-        self.client = RickAndMortyClient()  # Adding instance to this class to be able to request directly from the app
-        self.characters = {}
-        self.locations = {}
-        self.episodes = {}
+        self.client = RickAndMortyClient()  # Adding instance to this class to be able to request directly from the app class
+        self.characters = {}  # Assume we need to hold it as a class property, refer to line 63
+        self.locations = {}  # Assume we need to hold it as a class property, refer to line 63
+        self.episodes = {}  # Assume we need to hold it as a class property, refer to line 63
 
     async def save_to_json(self, data, file_name):
+        """
+        Method for saving json to the files
+        """
         async with aiofiles.open(file_name, 'w') as file:
             await file.write(json.dumps(data, indent=4))
 
@@ -75,7 +79,7 @@ class RickAndMortyApp():
 
 async def main():
     """
-    Funny implementation of the requests initiator
+    Implementation of the program starting point
     """
     app = RickAndMortyApp()
 

@@ -3,12 +3,12 @@ import asyncio
 from urllib.parse import urlencode
 
 class RickAndMortyClient:
+    """
+    Client class to make and proceed with the requests
+    """
     class RickAndMortyURLBuilder:
         """
         Nested class to handle links is a more isolated manner
-
-        We add page query into the base URL because pagination on this page won't let us retrieve all the needed data
-        in every possible scenario of usage that I can see.
         """
         
         BASE_URL = 'https://rickandmortyapi.com/api/'
@@ -35,6 +35,7 @@ class RickAndMortyClient:
             return f"{path}?{query_string}"    
 
     INITIAL_PAGE_INDEX = 1
+    
     def __init__(self):
         self.client = httpx.AsyncClient()
         self.urlbuilder = self.RickAndMortyURLBuilder()
