@@ -44,7 +44,6 @@ class RickAndMortyClient:
         Fetch a single page from a given endpoint.
         """
         url = self.urlbuilder.add_query_params(path, {'page': page})
-        print(url)
         response = await self.client.get(url)
         response.raise_for_status()
         return response.json()
