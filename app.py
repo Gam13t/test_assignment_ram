@@ -2,10 +2,13 @@ import json
 import asyncio 
 import aiofiles
 from uuid import uuid4
+from aiologger import Logger
 
 from datetime import datetime
 from client import RickAndMortyClient
 from exceptions import RequestException
+
+logger = Logger.with_default_handlers(name=__name__)
 
 class RickAndMortyApp():
     """

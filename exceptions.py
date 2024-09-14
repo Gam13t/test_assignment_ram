@@ -10,7 +10,7 @@ class RequestException(Exception):
 
     def __str__(self):
         if self.original_exception:
-            return f"{self.message} (Original exception: {self.original_exception})"
+            return f"{self.message} - (Original exception: {self.original_exception})"
         return self.message
 
 

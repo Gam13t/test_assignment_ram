@@ -1,8 +1,11 @@
 import httpx
 import asyncio
+from aiologger import Logger
 from urllib.parse import urlencode
 
 from exceptions import RequestException
+
+logger = Logger.with_default_handlers(name=__name__)
 
 class RickAndMortyClient:
     """
@@ -59,7 +62,7 @@ class RickAndMortyClient:
             except (httpx.TimeoutException, httpx.HTTPError, httpx.ConnectError) as exc: 
                 retries += 1
                 exception = exc
-                print(f'HTTP Exception for {exc.request.url} - {exc}, Retries left: {self.max_retries - retries}')
+                await logger.warning(f'HTTP Exception for {exc.request.url} - {exc}, Retries left: {self.max_retries - retries}')
                 await asyncio.sleep(self.retry_timeout)
         raise RequestException("RequestException: One or more courutines were unable to retrieve data", original_exception=exception)
 
