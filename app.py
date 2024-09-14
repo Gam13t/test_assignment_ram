@@ -3,12 +3,15 @@ import asyncio
 import aiofiles
 from uuid import uuid4
 from aiologger import Logger
-
 from datetime import datetime
+
 from client import RickAndMortyClient
+from logger import formatter
 from exceptions import RequestException
 
 logger = Logger.with_default_handlers(name=__name__)
+for handler in logger.handlers:
+    handler.formatter = formatter
 
 class RickAndMortyApp():
     """
@@ -26,14 +29,17 @@ class RickAndMortyApp():
 
     async def save_to_json(self, data, file_name):
         """
-        Method for saving json to the files
+        Save data to a JSON file.
         """
-        async with aiofiles.open(file_name, 'w') as file:
-            await file.write(json.dumps(data, indent=4))
+        try:
+            async with aiofiles.open(file_name, 'w') as file:
+                await file.write(json.dumps(data, indent=4))
+        except Exception as e:
+            await logger.error(f"Failed to save data to {file_name}: {e}")
 
     async def prepare_json_data(self, data):
         """
-        Basically serialise data in a proper way
+        Serialize data with unique identifiers.
         """
         data_json = [{'id': uuid4().hex, 'RawData': obj} for obj in data]
         return data_json
@@ -43,33 +49,39 @@ class RickAndMortyApp():
     # file or proceed this data futher.
     async def fetch_and_save_data(self):
         """
-        Method for gathering client request results and saving them to json
+        Gather data from the client and save it to JSON files.
         """
-        self.characters, self.locations, self.episodes = await asyncio.gather(
-            self.client.fetch_all_characters(),
-            self.client.fetch_all_locations(),
-            self.client.fetch_all_episodes(),
-        )
+        try: 
+            self.characters, self.locations, self.episodes = await asyncio.gather(
+                self.client.fetch_all_characters(),
+                self.client.fetch_all_locations(),
+                self.client.fetch_all_episodes(),
+            )
 
-        characters_json, locations_json, episodes_json = await asyncio.gather(
-            self.prepare_json_data(self.characters),
-            self.prepare_json_data(self.locations),
-            self.prepare_json_data(self.episodes),
-        )
+            characters_json, locations_json, episodes_json = await asyncio.gather(
+                self.prepare_json_data(self.characters),
+                self.prepare_json_data(self.locations),
+                self.prepare_json_data(self.episodes),
+            )
 
-        await asyncio.gather(
-            self.save_to_json(characters_json, self.CHARACTERS_FILE),
-            self.save_to_json(locations_json, self.LOCAITONS_FILE),
-            self.save_to_json(episodes_json, self.EPISODES_FILE),
-        )
+            await asyncio.gather(
+                self.save_to_json(characters_json, self.CHARACTERS_FILE),
+                self.save_to_json(locations_json, self.LOCAITONS_FILE),
+                self.save_to_json(episodes_json, self.EPISODES_FILE),
+            )
+        except RequestException as exc:
+            logger.error(exc)
     
     # We may either make a call to API or assume that we should print episodes in range as a part of the flow.
     # In this case - I'll make a check if we get the episodes list already and if we have it - I won't be making a
     # request to obatin them again. However since our code is async, most of the time self.episodes will be empty at first.
     async def print_episodes_in_range(self):
         if not self.episodes:
-            self.episodes = await self.client.fetch_all_episodes()
-        
+            try:
+                self.episodes = await self.client.fetch_all_episodes()
+            except RequestException as exc:
+                logger.error(exc)
+
         episode_list = []
         for episode in self.episodes:
             air_date = datetime.strptime(episode['air_date'], '%B %d, %Y')
@@ -92,8 +104,6 @@ async def main():
             app.fetch_and_save_data(),
             app.print_episodes_in_range()
         )
-    except RequestException as exc:
-        print(exc)
     finally:
         await app.client.close()
 

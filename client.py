@@ -4,33 +4,20 @@ from aiologger import Logger
 from urllib.parse import urlencode
 
 from exceptions import RequestException
+from logger import formatter
 
 logger = Logger.with_default_handlers(name=__name__)
+for handler in logger.handlers:
+    handler.formatter = formatter
 
 class RickAndMortyClient:
     """
-    Client class to make and proceed with the requests
+    Client class to handle requests to the Rick and Morty API.
     """
-    class RickAndMortyURLBuilder:
-        """
-        Nested class to handle links is a more isolated manner
-        """
-        BASE_URL = 'https://rickandmortyapi.com/api/'
-        CHARACTER_PATH = 'character'
-        LOCATION_PATH = 'location'
-        EPISODE_PATH = 'episode'
-        
-        @property
-        def character_path(self):
-            return f"{self.BASE_URL}{self.CHARACTER_PATH}"
-
-        @property
-        def location_path(self):
-            return f"{self.BASE_URL}{self.LOCATION_PATH}"
-
-        @property
-        def episode_path(self):
-            return f"{self.BASE_URL}{self.EPISODE_PATH}"  
+    BASE_URL = 'https://rickandmortyapi.com/api/'
+    CHARACTER_PATH = 'character'
+    LOCATION_PATH = 'location'
+    EPISODE_PATH = 'episode'
 
     INITIAL_PAGE_INDEX = 1
 
@@ -39,16 +26,15 @@ class RickAndMortyClient:
         read_timeout: float = 2.0,
         connect_timeout: float = 5.0,
         max_retries: int = 5,
-        retry_timeout: float = 2.0
+        retry_timeout: float = 2.0,
     ):
         self.max_retries = max_retries
         self.retry_timeout = retry_timeout
         self.client = httpx.AsyncClient(timeout=httpx.Timeout(read_timeout, connect=connect_timeout))
-        self.urlbuilder = self.RickAndMortyURLBuilder()
 
     async def fetch_page_with_retry(self, path: str, page: int):
         """
-        Fetch a single page from a given endpoint with the retry mechanic on the failed requests.
+        Fetch a single page from a given endpoint with retry logic.
         """
         retries = 0
         params = {'page': page}
@@ -58,6 +44,7 @@ class RickAndMortyClient:
             try:
                 response = await self.client.get(path, params=params)
                 response.raise_for_status()
+                await logger.info(f'Data from {response.url} has been obtained successfully.')
                 return response.json()
             except (httpx.TimeoutException, httpx.HTTPError, httpx.ConnectError) as exc: 
                 retries += 1
@@ -68,7 +55,7 @@ class RickAndMortyClient:
 
     async def fetch_all_pages(self, path: str):
         """
-        Method for asynchronously harvesting all the info from multiple pages for the sources PATH.
+        Fetch all pages from a given endpoint concurrently.
         
         !Despite we receive the link to the next page with data, I suppose to implement this throught receiving initial_page_data first,
         and bulk process everything afterwards, because otherwise we will be processing pages one by one waiting for the 
@@ -87,13 +74,13 @@ class RickAndMortyClient:
         return all_results
 
     async def fetch_all_characters(self):
-        return await self.fetch_all_pages(self.urlbuilder.character_path)
+        return await self.fetch_all_pages(f"{self.BASE_URL}{self.CHARACTER_PATH}")
 
     async def fetch_all_locations(self):
-        return await self.fetch_all_pages(self.urlbuilder.location_path)
+        return await self.fetch_all_pages(f"{self.BASE_URL}{self.LOCATION_PATH}")
 
     async def fetch_all_episodes(self):
-        return await self.fetch_all_pages(self.urlbuilder.episode_path)
+        return await self.fetch_all_pages(f"{self.BASE_URL}{self.EPISODE_PATH}")
 
     async def close(self):
         await self.client.aclose()
