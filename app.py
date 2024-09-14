@@ -3,13 +3,14 @@ import asyncio
 import aiofiles
 from uuid import uuid4
 from aiologger import Logger
+from aiologger.levels import LogLevel
 from datetime import datetime
 
 from client import RickAndMortyClient
 from logger import formatter
 from exceptions import RequestException
 
-logger = Logger.with_default_handlers(name=__name__)
+logger = Logger.with_default_handlers(name=__name__, level=LogLevel.WARNING)
 for handler in logger.handlers:
     handler.formatter = formatter
 
@@ -81,6 +82,7 @@ class RickAndMortyApp():
                 self.episodes = await self.client.fetch_all_episodes()
             except RequestException as exc:
                 logger.error(exc)
+                return
 
         episode_list = []
         for episode in self.episodes:

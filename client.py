@@ -1,12 +1,13 @@
 import httpx
 import asyncio
 from aiologger import Logger
+from aiologger.levels import LogLevel
 from urllib.parse import urlencode
 
 from exceptions import RequestException
 from logger import formatter
 
-logger = Logger.with_default_handlers(name=__name__)
+logger = Logger.with_default_handlers(name=__name__, level=LogLevel.WARNING)
 for handler in logger.handlers:
     handler.formatter = formatter
 
