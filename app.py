@@ -5,6 +5,7 @@ from uuid import uuid4
 
 from datetime import datetime
 from client import RickAndMortyClient
+from exceptions import RequestException
 
 class RickAndMortyApp():
     """
@@ -88,6 +89,8 @@ async def main():
             app.fetch_and_save_data(),
             app.print_episodes_in_range()
         )
+    except RequestException as exc:
+        print(exc)
     finally:
         await app.client.close()
 
